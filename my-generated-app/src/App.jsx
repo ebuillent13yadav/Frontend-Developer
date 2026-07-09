@@ -1,38 +1,53 @@
-javascript
-import React from 'react';
-import { Box, Text, Flex } from '@chakra-ui/react';
+import React, { useState } from 'react';
 
-const DarkThemeProvider = ({ children }) => {
-  return (
-    <Box bg="gray.900" color="white">
+const StatisticsWidget = ({ title, value, icon }) => (
+  <div className="stats-widget">
+    <span>{icon}</span>
+    <h4>{title}</h4>
+    <p>{value}</p>
+  </div>
+);
+
+const StatsCardsContainer = ({ children }) => (
+  <div className="stats-cards-container">
+    {children}
+  </div>
+);
+
+const HeaderSection = ({ pageTitle }) => (
+  <header className="header-section">
+    <h1>{pageTitle}</h1>
+  </header>
+);
+
+const DarkThemeWrapper = ({ isDarkMode, children }) => {
+  return isDarkMode ? (
+    <div
+      style={{
+        backgroundColor: '#333',
+        color: '#fff',
+        padding: '20px'
+      }}
+    >
       {children}
-    </Box>
+    </div>
+  ) : (
+    children
   );
 };
 
-const StatisticsWidgetContainer = () => (
-  <Flex direction="column" gap={4} p={8}>
-    <Text fontWeight="bold">Total Users</Text>
-    <Text>12,345</Text>
-    <Text fontWeight="bold">Active Projects</Text>
-    <Text>987</Text>
-    <Text fontWeight="bold">Monthly Revenue</Text>
-    <Text>$678,901.23</Text>
-    <Text fontWeight="bold">Failed Tasks</Text>
-    <Text>456</Text>
-  </Flex>
-);
+const DashboardOverviewPage = () => {
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
-const DashboardOverviewPage = () => (
-  <DarkThemeProvider>
-    <Box p={8} borderBottomWidth="1px" borderBottomColor="gray.700">
-      <Text fontSize="2xl" fontWeight="bold">Dashboard Overview</Text>
-    </Box>
-    <StatisticsWidgetContainer />
-  </DarkThemeProvider>
-);
+  return (
+    <DarkThemeWrapper isDarkMode={isDarkMode}>
+      <HeaderSection pageTitle="Dashboard Overview" />
+      <StatsCardsContainer>
+        <StatisticsWidget title="Users" value="123456" icon={<span className="icon-user"></span>} />
+        <StatisticsWidget title="Active Sessions" value="98765" icon={<span className="icon-session"></span>} />
+      </StatsCardsContainer>
+    </DarkThemeWrapper>
+  );
+};
 
-const App = () => (
-  <DashboardOverviewPage />
-);
-export default App;
+export default DashboardOverviewPage;

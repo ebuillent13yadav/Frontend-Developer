@@ -11,8 +11,7 @@ def reviewer_node(state: ProjectState) -> dict:
     1. Does it use raw HTML structures like <html>, <head>, or <body> instead of basic React layout tags?
     2. Did it forget to export the default component via 'export default App;'?
     3. Does it contain random floating string errors like "javascript;" or code-block backticks?
-    4. Make sure it does not export external files from outside that are not part of basic react such as imports DarkThemeProvider and more that are not usually installedd inside a normal react file
-    5. Make sure there exists export default App at the end
+    4. Make sure there exists export default App at the end
 
     CRITICAL OUTPUT FORMATTING:
     - If the code is perfect and ready to run, output EXACTLY the word: PASSED, say only PASSED do not include caution notes.

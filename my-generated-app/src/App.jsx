@@ -1,53 +1,83 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { ThemeProvider } from '@mui/system';
+import { Box, Typography, IconButton, Grid, Paper } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import UserIcon from '@mui/icons-material/Person';
+import MonitorIcon from '@mui/icons-material/Laptop';
+import DollarSignIcon from '@mui/icons-material/MoneyOffCsRed';
+import NotificationImportantIcon from '@mui/icons-material/NotificationImportant';
 
-const StatisticsWidget = ({ title, value, icon }) => (
-  <div className="stats-widget">
-    <span>{icon}</span>
-    <h4>{title}</h4>
-    <p>{value}</p>
-  </div>
-);
-
-const StatsCardsContainer = ({ children }) => (
-  <div className="stats-cards-container">
-    {children}
-  </div>
-);
-
-const HeaderSection = ({ pageTitle }) => (
-  <header className="header-section">
-    <h1>{pageTitle}</h1>
-  </header>
-);
-
-const DarkThemeWrapper = ({ isDarkMode, children }) => {
-  return isDarkMode ? (
-    <div
-      style={{
-        backgroundColor: '#333',
-        color: '#fff',
-        padding: '20px'
-      }}
+const AppWrapper = ({ theme }) => (
+  <ThemeProvider theme={theme}>
+    <Box
+      display="flex"
+      flexDirection="column"
+      minHeight="100vh"
+      bg="#121212"
+      color="white"
     >
-      {children}
-    </div>
-  ) : (
-    children
-  );
+      <DashboardPage />
+      <footer>
+        <Typography variant="body2" align="center">
+          © 2023 Company Name. Built with React and Tailwind CSS
+        </Typography>
+      </footer>
+    </Box>
+  </ThemeProvider>
+);
+
+const DashboardPage = () => (
+  <Grid container spacing={3}>
+    <Grid item xs={12} mb={4}>
+      <Typography variant="h5" align="center">
+        Overview
+      </Typography>
+      <IconButton aria-label="refresh">
+        <RefreshIcon />
+      </IconButton>
+    </Grid>
+
+    <StatisticsWidgetsContainer />
+  </Grid>
+);
+
+const StatisticsWidgetsContainer = () => (
+  <Grid container spacing={3}>
+    <Widget value="10,000" icon={<UserIcon />} color="#4f8ebd" title="Total Users" />
+    <Widget value="500" icon={<MonitorIcon />} color="#62c462" title="Active Sessions" />
+    <Widget value="$30,000" icon={<DollarSignIcon />} color="#ed9121" title="Revenue" />
+    <Widget value="7" icon={<NotificationImportantIcon />} color="#ef4444" title="Notifications" />
+  </Grid>
+);
+
+const Widget = ({ value, icon: Icon, color, title }) => (
+  <Paper
+    elevation={3}
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: 2,
+      gap: 1,
+    }}
+  >
+    <Icon style={{ fontSize: 40, color }} />
+    <Typography variant="h6" color="inherit">
+      {title}
+    </Typography>
+    <Typography variant="body1" color="inherit">
+      {value}
+    </Typography>
+  </Paper>
+);
+
+const theme = {
+  palette: {
+    primary: { main: '#4f8ebd' },
+    secondary: { main: '#62c462' },
+    accent: { main: '#ed9121' },
+    warning: { main: '#ef4444' },
+  },
 };
 
-const DashboardOverviewPage = () => {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-
-  return (
-    <DarkThemeWrapper isDarkMode={isDarkMode}>
-      <HeaderSection pageTitle="Dashboard Overview" />
-      <StatsCardsContainer>
-        <StatisticsWidget title="Users" value="123456" icon={<span className="icon-user"></span>} />
-        <StatisticsWidget title="Active Sessions" value="98765" icon={<span className="icon-session"></span>} />
-      </StatsCardsContainer>
-    </DarkThemeWrapper>
-  );
-};
-
-export default DashboardOverviewPage;
+export default AppWrapper;

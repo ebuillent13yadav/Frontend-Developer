@@ -13,9 +13,8 @@ def component_node(state: ProjectState) -> dict:
 
     system_instruction = """You are an automated React code generation engine.
     Output ONLY a valid, single-file React component named App. No markdown backticks (```jsx), no conversations.
-    Do not forget export default App at the end
-    Make sure not to use external files such as Darkthemecontext and many more that are not part of the basiic react
-    Write everything from basic
+    Use as many outpachage as you see fit but make the app asthetic looking
+    And do not import from files code everything on your own or use a package
     """
     
     user_context = f"Roadmap Plan to follow:\n{state['project_plan']}\n\nOriginal Request:\n{state['user_prompt']}"

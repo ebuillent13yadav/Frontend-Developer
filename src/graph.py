@@ -1,6 +1,7 @@
 from langgraph.graph import StateGraph, END
 from src.state import ProjectState
 
+from src.agents.clarification import clarification_node
 from src.agents.planner import planner_node
 from src.agents.architect import architect_node
 from src.agents.component import component_node
@@ -50,17 +51,19 @@ def route_after_review(state: ProjectState):
         print("Code Rejected. Sending back to ComponentAgent for revisions.")
         return "fix_code"
 
-#--------------LangGraph Orchestration Setup---------
+#--------------LangGraph Orchestration Setup---------#
 
 workflow = StateGraph(ProjectState)
 
+workflow.add_node("ClarificationAgent",clarification_node)
 workflow.add_node("PlannerAgent", planner_node)
 workflow.add_node("ArchitectAgent", architect_node)
 workflow.add_node("ComponentAgent", component_node)
 workflow.add_node("ReviewerAgent", reviewer_node)
 workflow.add_node("PackageManagerAndFileWriterNode", package_manager_and_writer_node)
 
-workflow.set_entry_point("PlannerAgent")
+workflow.set_entry_point("ClarificationAgent")
+workflow.add_edge("ClarificationAgent","PlannerAgent")
 workflow.add_edge("PlannerAgent", "ArchitectAgent")
 workflow.add_edge("ArchitectAgent", "ComponentAgent")
 workflow.add_edge("ComponentAgent", "ReviewerAgent")

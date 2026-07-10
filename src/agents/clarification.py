@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
+from langgraph.graph import StateGraph, END
 
-user_input = input("Enter the Project you wanna Build: ")
 
 class Specifications(BaseModel):
     framework_preference: str | None = Field(None,description = "React, Next.js, TypeScript, etc.")
@@ -45,6 +45,45 @@ User Request:
 )
 
 llm = ChatOllama(model="qwen2.5:7b",temperature=0)
+structured_llm = llm.with_structured_output(Evaluation)
+
+def clarification_node(state: AgentState):
+    chain = llm|structured_llm
+
+    result = chain.invoke({
+        user_input: state["user_input"]
+    })
+
+    state["is_sufficient"] = result.is_sufficient
+    state["missing_fields"] = result.missing_fields
+    state["extracted_data"] = result.extracted_data
+
+    return state
+
+builder = StateGraph(AgentState)
+
+builder.add_node("clarification",clarification_node)
+builder.set_entry_point("clarification")
+builder.add_edge("clarification",END)
+
+graph = builder.compile()
+
+user = input("Enter the Project you wanna Build:\n ")
+
+initial_state: AgentState = {
+    "user_input": user,
+    "is_sufficient": False,
+    "missing_fields": [],
+    "extracted_data": None
+}
+
+result = graph.invoke(initial_state)
+
+print("\nEvaluation\n")
+
+print(result)
+
+
 
 
 

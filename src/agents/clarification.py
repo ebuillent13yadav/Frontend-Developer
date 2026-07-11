@@ -3,13 +3,7 @@ from typing_extensions import TypedDict
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, END
-
-
-class Specifications(BaseModel):
-    framework_preference: str | None = Field(None,description = "React, Next.js, TypeScript, etc.")
-    styling_library: str | None = Field(None,description = "Tailwind CSS,Shaden UI,Bootstrap, etc.")
-    theme: str | None = Field(None,description = "Dark Mode,Minimalist Dark Mode, etc.")
-    complexity: str | None = Field(None,description = "Dashboard, Landing Page, Custom UI, etc.")
+from state import ProjectState,Specifications
 
 class Evaluation(BaseModel):
     is_sufficient: bool = Field(...,description = "True if all 4 parameters are present")    
@@ -17,13 +11,6 @@ class Evaluation(BaseModel):
     missing_fields: list[str] = Field(description = "List of required details that are missing")
     reasoning: str = Field(description = "Brief explanation of why the input is or is not sufficient")
     clarification_question: str = Field(description= "A natural language question asking for the missing details.")
-
-class AgentState(TypedDict):
-    user_input: str
-    is_sufficient: bool
-    missing_fields: list[str]
-    extracted_data: Specifications|None # initially it clould be none
-    clarification_question: str
 
     
 prompt = ChatPromptTemplate.from_template("""
@@ -52,59 +39,27 @@ Instructions:
 - Return the response according to the Evaluation schema.
 
 User Request:
-{user_input}
+{user_prompt}
 """
 )
 
 llm = ChatOllama(model="qwen2.5:7b",temperature=0)
 structured_llm = llm.with_structured_output(Evaluation)
 
-def clarification_node(state: AgentState):
+def clarification_node(state: ProjectState):
     chain = prompt|structured_llm  ## Prompt ---> LLM
 
     result = chain.invoke({
-        "user_input": state["user_input"]
+        "user_prompt": state["user_prompt"]
     })
 
-    state["is_sufficient"] = result.is_sufficient
-    state["missing_fields"] = result.missing_fields
-    state["extracted_data"] = result.extracted_data
-    state["clarification_question"] = result.clarification_question
-
-    return state
-
-##-----##----Graph----##-----##
-
-builder = StateGraph(AgentState)
-
-builder.add_node("clarification",clarification_node)
-builder.set_entry_point("clarification")
-builder.add_edge("clarification",END)
-
-graph = builder.compile()
-
-user = input("Enter the Project you wanna Build:\n ")
-
-initial_state: AgentState = {
-    "user_input": user,
-    "is_sufficient": False,
-    "missing_fields": [],
-    "extracted_data": None,
-    "clarification_question": ""
-}
-
-result = graph.invoke(initial_state)
-
-print("\nEvaluation\n")
-
-while not result["is_sufficient"]:
-    print(result["clarification_question"])
-    reply = input("> ")
-    result["user_input"] += "\n" + reply
-
-    result = graph.invoke(result) ## result gets updated after each iteration 
-    
-print(result["extracted_data"])    
+    return{
+        "is_sufficient": result.is_sufficient,
+        "missing_fields": result.missing_fields,
+        "extracted_data": result.extracted_data,
+        "clarification_question": result.clarification_question,
+    }
+  
 
 
 

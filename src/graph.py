@@ -42,6 +42,13 @@ def package_manager_and_writer_node(state: ProjectState) -> dict:
     print("[Automation Node] Saved verified codebase to disk!")
     return {"final_code": code}
 
+def route_after_clarification(state: ProjectState):
+    if state["is_sufficient"]:
+        print("Specifications Complete. Moving to Planner Agent.")
+        return "planner"
+    print("More Information required from user")
+    return "end"
+
 def route_after_review(state: ProjectState):
     feedback = state.get("review_feedback","").upper()
     if "PASSED" in feedback:
@@ -63,7 +70,16 @@ workflow.add_node("ReviewerAgent", reviewer_node)
 workflow.add_node("PackageManagerAndFileWriterNode", package_manager_and_writer_node)
 
 workflow.set_entry_point("ClarificationAgent")
-workflow.add_edge("ClarificationAgent","PlannerAgent")
+
+workflow.add_conditional_edges(
+    "ClarificationAgent",
+    route_after_clarification,
+    {
+        "planner": "PlannerAgent",
+        "end":END,
+    },
+)
+
 workflow.add_edge("PlannerAgent", "ArchitectAgent")
 workflow.add_edge("ArchitectAgent", "ComponentAgent")
 workflow.add_edge("ComponentAgent", "ReviewerAgent")
@@ -73,8 +89,8 @@ workflow.add_conditional_edges(
     route_after_review,
     {
         "deploy": "PackageManagerAndFileWriterNode",
-        "fix_code": "ComponentAgent"
-    }
+        "fix_code": "ComponentAgent",
+    },
 )
 
 workflow.add_edge("PackageManagerAndFileWriterNode", END)

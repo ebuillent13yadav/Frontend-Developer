@@ -1,9 +1,22 @@
 from typing import TypedDict
+from pydantic import BaseModel,Field
+
+
+class Specifications(BaseModel):
+    framework_preference: str | None = Field(None,description = "React, Next.js, TypeScript, etc.")
+    styling_library: str | None = Field(None,description = "Tailwind CSS,Shaden UI,Bootstrap, etc.")
+    theme: str | None = Field(None,description = "Dark Mode,Minimalist Dark Mode, etc.")
+    complexity: str | None = Field(None,description = "Dashboard, Landing Page, Custom UI, etc.")
 
 class ProjectState(TypedDict):
     """
     The shared central memory for the multi-agent pipeline.
     """
+    is_sufficient: bool
+    missing_fields: list[str]
+    extracted_data: Specifications|None # initially it clould be none
+    clarification_question: str
+
     user_prompt: str    # Original requirement from the user
     project_plan: str   # Gigh-level architecture roadmap created by Planner
     file_layout: str    # File paths decided by the UI Architect

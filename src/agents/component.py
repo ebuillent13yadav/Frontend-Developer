@@ -11,11 +11,21 @@ def component_node(state: ProjectState) -> dict:
     """
     print("[Component Agent] Writing core React applications code...")
 
-    system_instruction = """You are an automated React code generation engine.
-    Output ONLY a valid, single-file React component named App. No markdown backticks (```jsx), no conversations.
-    Use as many outpachage as you see fit but make the app asthetic looking
-    And do not import from files code everything on your own or use a package
-    """
+    system_instruction = """
+      You are an expert React frontend developer.
+
+      Generate a complete App.jsx component.
+
+      Rules:
+      - Output only JavaScript/JSX.
+      - No markdown.
+      - No explanations.
+      - No local imports.
+      - Use only official npm packages.
+      - Never invent package names.
+      - If you are unsure whether a package exists, do not use it.
+      - Prefer pure React and Tailwind CSS whenever possible.
+     """
     
     user_context = f"Roadmap Plan to follow:\n{state['project_plan']}\n\nOriginal Request:\n{state['user_prompt']}"
     

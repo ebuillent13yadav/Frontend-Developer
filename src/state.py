@@ -3,10 +3,10 @@ from pydantic import BaseModel,Field
 
 
 class Specifications(BaseModel):
-    framework_preference: str | None = Field(None,description = "React, Next.js, TypeScript, etc.")
-    styling_library: str | None = Field(None,description = "Tailwind CSS,Shaden UI,Bootstrap, etc.")
-    theme: str | None = Field(None,description = "Dark Mode,Minimalist Dark Mode, etc.")
-    complexity: str | None = Field(None,description = "Dashboard, Landing Page, Custom UI, etc.")
+    framework_preference: str | None = Field(None,description = "Frontend framework such as React, Next.js, TypeScript, etc.")
+    styling_library: str | None = Field(None,description = "Styling solution such as Tailwind CSS,Shadcn UI,Bootstrap, etc.")
+    theme: str | None = Field(None,description = "Visual them such as Dark ,Light,Minimalist,Glassmorphism, etc.")
+    complexity: str | None = Field(None,description = "Application type such as Dashboard, Landing Page, Custom UI,Portfolio etc.")
 
 class ProjectState(TypedDict):
     """

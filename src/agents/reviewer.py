@@ -6,18 +6,38 @@ llm = ChatOllama(model="qwen2.5:7b")
 def reviewer_node(state: ProjectState) -> dict:
     print("[Reviewer Agent] Analyzing the code for runtime bugs or layout defects...")
 
-    system_instruction = """You are an expert React Code Reviewer.
-    Your task is to inspect the generated code for major flaws:
-    1. Does it use raw HTML structures like <html>, <head>, or <body> instead of basic React layout tags?
-    2. Did it forget to export the default component via 'export default App;'?
-    3. Does it contain random floating string errors like "javascript;" or code-block backticks?
-    4. Make sure there exists export default App at the end
+    system_instruction = """
+    You are an expert React Code Reviewer.
 
-    CRITICAL OUTPUT FORMATTING:
-    - If the code is perfect and ready to run, output EXACTLY the word: PASSED, say only PASSED do not include caution notes.
-    - If the code has mistakes, write a clear, bulleted instruction guide listing exactly what needs to be fixed. Do NOT include code blocks in your review feedback, just text instructions.
+    Your task is to inspect the generated React code for major issues before deployment.
+
+    Checklist:
+
+    1. Ensure the code is a valid React component.
+    2. Ensure there are NO <html>, <head>, or <body> tags.
+    3. Ensure the component is exported using:
+       export default App;
+    4. Ensure there are no markdown code fences (```), random text like "javascript;", or explanations.
+    5. Verify that all import statements are syntactically correct.
+    6. Verify that imported packages are real npm packages. Reject invented package names such as:
+       - @styled-components
+       - @react-icons
+       - @tailwindcss
+    7. Ensure there are no imports from missing local files (./ or ../) unless they are guaranteed to exist.
+    8. Ensure the generated code is self-contained and can compile successfully.
+    9. Ensure there are no obvious JavaScript or JSX syntax errors.
+    
+    CRITICAL OUTPUT FORMAT:
+    
+    - If ALL checks pass, output EXACTLY:
+    PASSED
+    
+    Do not output any other words, explanations, or caution notes.
+    
+    - Otherwise, output a concise bulleted list of the issues that must be fixed.
+    Do not include code blocks or corrected code.
+    Only describe the problems.
     """
-
     full_prompt = f"{system_instruction}\n\nGenerated Code to Review:\n{state['generated_code']}"
 
     ai_message = llm.invoke(full_prompt)

@@ -1,12 +1,12 @@
 from langgraph.graph import StateGraph, END
 from src.state import ProjectState
-
+import shutil
 from src.agents.clarification import clarification_node
 from src.agents.planner import planner_node
 from src.agents.architect import architect_node
 from src.agents.component import component_node
 from src.agents.reviewer import reviewer_node
-
+import os
 import subprocess
 import re
 
@@ -14,25 +14,57 @@ def package_manager_and_writer_node(state: ProjectState) -> dict:
     print("\n [Package Manager Agent] Scanning finalized code for external libraries...")
     code = state["generated_code"]
 
-    import_pattern = re.compile(r"from\s+['\"]([^'\".]+)['\"]")
+    import_pattern = re.compile(
+    r'import\s+(?:.*?\s+from\s+)?["\']([^"\']+)["\']'
+    )
     detected_packages = []
 
     for line in code.splitlines():
         match = import_pattern.search(line)
         if match:
             package_name = match.group(1)
+
+            if(
+                package_name.startswith("./")
+                or package_name.startswith("../")
+                or package_name.startswith("@/")
+            ):
+                continue
+            
+            if package_name.startswith("@"):
+                package_name = "/".join(package_name.split("/")[:2])
+            else:
+                package_name = package_name.split("/")[0]
+
             if package_name not in ["react", "react-dom"]:
                 detected_packages.append(package_name)
     
     unique_packages = list(set(detected_packages))
     if unique_packages:
         print(f"Detected external dependencies: {unique_packages}")
+        print("cwd:", os.getcwd())
+        print("app exists:", os.path.exists("./my-generated-app"))
+        print("npm:", shutil.which("npm"))
+        print("npm.cmd:", shutil.which("npm.cmd"))
         for pkg in unique_packages:
+            print(f"Package: {repr(pkg)}")
             print(f"Running: npm install {pkg}...")
 
-            subprocess.run(["npm", "install", pkg], cwd="./my-generated-app", shell=True)
-            print(f"Installed {pkg} successfully!")
-    
+            result = subprocess.run(
+                [r"C:\Program Files\nodejs\npm.cmd",
+                 "install", 
+                 pkg,
+                ],
+                cwd="./my-generated-app", 
+                # shell=True,
+                capture_output=True,
+                text=True
+                )
+            if result.returncode == 0:
+                print(f"Installed {pkg} successfully!")
+            else:
+                print(f"Failed to install {pkg}")
+                print(result.stderr)
     else:
         print("No external dependencies detected. Proceeding safely.")
     

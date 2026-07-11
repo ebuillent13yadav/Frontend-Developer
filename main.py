@@ -2,9 +2,10 @@ from src.graph import compiled_graph
 
 if __name__ =="__main__":
     print("Initializing Multi-Agent Local Code Generation Pipeline...")
-
+    
+    user_prompt = input("Enter the project you want to build:\n>")
     initial_state = {
-        "user_prompt": "Create a clean, dark-themed dashboard overview page with statistics widgets.",
+        "user_prompt": user_prompt,
         "is_sufficient": False,
         "missing_fields": [],
         "extracted_data": None,
@@ -15,13 +16,13 @@ if __name__ =="__main__":
         "final_code": "",
         "review_feedback": ""
     }
-    state = initial_state
+    
     while True:
-        state = compiled_graph.invoke(state) 
-        if state["is_sufficient"]:
+        initial_state = compiled_graph.invoke(initial_state) 
+        if initial_state["is_sufficient"]:
             break
-        print(state["clarification_question"])
+        print(initial_state["clarification_question"])
         reply = input("> ")
-        state["user_prompt"] += "\n" + reply
+        initial_state["user_prompt"] += "\n" + reply
 
-        print(state["extracted_data"])
+        print(initial_state["extracted_data"])

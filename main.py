@@ -14,7 +14,10 @@ if __name__ =="__main__":
         "file_layout": "",
         "generated_code": "",
         "final_code": "",
-        "review_feedback": ""
+        "review_feedback": "",
+        "build_passed": False,
+        "build_error": "",
+        "build_attempts": 0,
     }
     
     while True:

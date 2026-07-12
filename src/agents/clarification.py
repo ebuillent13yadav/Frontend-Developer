@@ -24,7 +24,9 @@ The required specifications are:
 
 Instructions:
 - Extract all specifications that are explicitly mentioned or can be confidently inferred from the user's wording.
-- Interpret natural language and synonymous phrases correctly.
+- Never guess or invent a specification that is not supported by the user's request.
+- If a specification is uncertain, leave it as null and ask for clarification.
+- Interpret common synonyms and informal wording correctly.
 - The User Request may contain the original request followed by one or more clarification responses.
 - Treat the entire User Request as a cumulative conversation.
 - When the user provides additional clarification in later turns, combine it with the previously extracted information.
@@ -62,9 +64,20 @@ Examples:
 - "Build me a landing page"
   -> complexity = "Landing Page"
 
+Normalization Rules:
+
+- "React.js" -> "React"
+- "Tailwind" -> "Tailwind CSS"
+- "Dark mode" -> "Dark"
+- "Light mode" -> "Light"
+- "Next" -> "Next.js"
+- Return normalized values exactly as shown above.                                                                                    
+
+- Missing specifications must be returned as null in extracted_data.                                          
 Decision Rules:
 
 - If all four specifications are present:
+  - Do not ask any clarification questions if all required specifications are available.
   - Set is_sufficient = true.
   - Return all extracted specifications.
   - Set missing_fields to an empty list.
@@ -75,7 +88,9 @@ Decision Rules:
   - List ONLY the missing specifications in missing_fields.
   - Generate ONE natural clarification question asking ONLY for the missing specifications.
   - Never ask about specifications that have already been provided.
-
+                                          
+- Never replace a previously extracted non-null specification with null unless the user explicitly changes it.
+                                          
 Return the response strictly according to the Evaluation schema.
 
 User Request:

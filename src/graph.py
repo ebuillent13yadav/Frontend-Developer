@@ -6,6 +6,7 @@ from src.agents.planner import planner_node
 from src.agents.architect import architect_node
 from src.agents.component import component_node
 from src.agents.reviewer import reviewer_node
+from src.agents.build_verifier import build_verifier_node
 import os
 import subprocess
 import re
@@ -82,14 +83,22 @@ def route_after_clarification(state: ProjectState):
     return "end"
 
 def route_after_review(state: ProjectState):
-    feedback = state.get("review_feedback","").upper()
-    if "PASSED" in feedback:
+    feedback = state.get("review_feedback","").strip()
+    if feedback == "PASSED":
         print("Code Passed Inspection! Moving to file deployment.")
         return "deploy"
     else:
         print("Code Rejected. Sending back to ComponentAgent for revisions.")
         return "fix_code"
+    
+def route_after_build(state: ProjectState):
+    if state["build_passed"]:
+        return "deploy"
 
+    if state["build_attempts"] >= 3:
+        return "end"
+
+    return "fix"
 #--------------LangGraph Orchestration Setup---------#
 
 workflow = StateGraph(ProjectState)
@@ -99,6 +108,7 @@ workflow.add_node("PlannerAgent", planner_node)
 workflow.add_node("ArchitectAgent", architect_node)
 workflow.add_node("ComponentAgent", component_node)
 workflow.add_node("ReviewerAgent", reviewer_node)
+workflow.add_node("BuildVerifier", build_verifier_node)
 workflow.add_node("PackageManagerAndFileWriterNode", package_manager_and_writer_node)
 
 workflow.set_entry_point("ClarificationAgent")
@@ -125,6 +135,15 @@ workflow.add_conditional_edges(
     },
 )
 
-workflow.add_edge("PackageManagerAndFileWriterNode", END)
+workflow.add_edge("PackageManagerAndFileWriterNode", "BuildVerifier")
+workflow.add_conditional_edges(
+    "BuildVerifier",
+    route_after_build,
+    {
+        "deploy": END,
+        "fix": "ComponentAgent",
+        "end": END,
+    },
+)
 
 compiled_graph = workflow.compile()

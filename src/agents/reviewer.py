@@ -41,6 +41,14 @@ def reviewer_node(state: ProjectState) -> dict:
     - No imports from missing local files (./ or ../) unless they are guaranteed to exist.
     - Every external package must exist on npm.
     - Reject invented package names.
+    - Reject any package that is not an official npm package.
+
+    Examples of invalid packages:
+    - @tailwindcss/react
+    - @styled-components
+    - @react-icons
+
+    If any imported package is not known to exist on npm, DO NOT output PASSED.
 
     5. Routing (if React Router is used)
     - BrowserRouter is imported correctly.
@@ -62,7 +70,14 @@ def reviewer_node(state: ProjectState) -> dict:
     7. Build Readiness
     - The code should compile successfully in a fresh Vite + React project.
     - There should be no obvious JavaScript or JSX syntax errors.
+     Reject any package that is not an official npm package.
 
+    Examples of invalid packages:
+    - @tailwindcss/react
+    - @styled-components
+    - @react-icons
+
+    If any imported package is not known to exist on npm, DO NOT output PASSED.
     Decision Rules:
 
     - If ANY issue is found, DO NOT output PASSED.
@@ -79,6 +94,13 @@ def reviewer_node(state: ProjectState) -> dict:
     PASSED
 
     Otherwise, output ONLY a concise bulleted list describing the issues to fix.
+
+    Do NOT:
+    - Use markdown code fences.
+    - Use ``` or ```plaintext.
+    - Include explanations.
+    - Include introductory phrases such as "Here are the issues to fix".
+    - Include corrected code.
     """
 
     ai_message = llm.invoke([

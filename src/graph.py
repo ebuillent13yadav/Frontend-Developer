@@ -41,20 +41,34 @@ def package_manager_and_writer_node(state: ProjectState) -> dict:
                 detected_packages.append(package_name)
     
     unique_packages = list(set(detected_packages))
+    INVALID_PACKAGES = {
+     "@tailwindcss/react",
+     "@styled-components",
+     "@react-icons",
+     }
     if unique_packages:
         print(f"Detected external dependencies: {unique_packages}")
         print("cwd:", os.getcwd())
         print("app exists:", os.path.exists("./my-generated-app"))
         print("npm:", shutil.which("npm"))
         print("npm.cmd:", shutil.which("npm.cmd"))
+
         for pkg in unique_packages:
+            if pkg in INVALID_PACKAGES:
+                print(f"Invalid Package Detected: {pkg}")
+
+                return {
+                    "build_passed": False,
+                    "build_error": f"invalide npm package detected: {pkg}.Replace it with a valid npm package."
+                }
             print(f"Package: {repr(pkg)}")
             print(f"Running: npm install {pkg}...")
 
             result = subprocess.run(
-                [r"C:\Program Files\nodejs\npm.cmd",
-                 "install", 
-                 pkg,
+                [
+                    r"C:\Program Files\nodejs\npm.cmd",
+                    "install", 
+                     pkg,
                 ],
                 cwd="./my-generated-app", 
                 # shell=True,
@@ -66,6 +80,11 @@ def package_manager_and_writer_node(state: ProjectState) -> dict:
             else:
                 print(f"Failed to install {pkg}")
                 print(result.stderr)
+
+                return {
+                    "build_passed": False,
+                    "build_error": result.stderr,
+                }
     else:
         print("No external dependencies detected. Proceeding safely.")
     
@@ -92,12 +111,15 @@ def route_after_review(state: ProjectState):
         return "fix_code"
     
 def route_after_build(state: ProjectState):
-    if state["build_passed"]:
+    if state.get("build_passed",False):
+        print("Build Succeeded.")
         return "deploy"
 
-    if state["build_attempts"] >= 3:
+    if state.get("build_attempts",0) >= 3:
+        print("Maximum build attempts reached.")
         return "end"
-
+    
+    print("Build failed. Sending back to Component Agent.")
     return "fix"
 #--------------LangGraph Orchestration Setup---------#
 

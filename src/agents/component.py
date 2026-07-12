@@ -75,19 +75,19 @@ def component_node(state: ProjectState) -> dict:
     if state.get("review_feedback") and state["review_feedback"] != "PASSED":
         user_context += f"\n\n CRITICAL: Your previous version failed review with these errors. Fix them immediately:\n{state['review_feedback']}"
         print("[Component Agent] Code failed review. Attempting correction based on feedback...")
-    if state.get("build_error"):
+    if state.get("build_attempts", 0) > 0 and state.get("build_error"):
        user_context += f"""
 
-    CRITICAL: The previous code failed to compile.
+       CRITICAL: The previous code failed to compile.
 
-    Compiler Error:
-    {state["build_error"]}
+       Compiler Error:
+       {state["build_error"]}
 
-    Fix ONLY these compiler/build errors.
-    Keep everything else unchanged.
-    Return the complete corrected App.jsx.
-    """
-    print("[Component Agent] Previous build failed. Fixing compiler errors...")
+       Fix ONLY these compiler/build errors.
+       Keep everything else unchanged.
+       Return the complete corrected App.jsx.
+       """
+       print("[Component Agent] Previous build failed. Fixing compiler errors...")
 
     full_prompt = (
         SystemMessage(system_instruction),
